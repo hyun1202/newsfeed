@@ -46,6 +46,8 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 	// oauth2 의존성 추가
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	testImplementation("com.navercorp.fixturemonkey:fixture-monkey-starter:0.6.8")
 }
 
 tasks.named('test') {
