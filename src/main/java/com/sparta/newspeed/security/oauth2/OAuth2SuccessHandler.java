@@ -1,9 +1,9 @@
 package com.sparta.newspeed.security.oauth2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.newspeed.auth.dto.TokenResponseDto;
-import com.sparta.newspeed.auth.service.AuthService;
-import com.sparta.newspeed.security.util.JwtUtil;
+import com.sparta.newspeed.domain.auth.dto.TokenResponseDto;
+import com.sparta.newspeed.domain.auth.service.AuthService;
+import com.sparta.newspeed.common.util.JwtUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

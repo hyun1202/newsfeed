@@ -1,6 +1,6 @@
 package com.sparta.newspeed.security.oauth2;
 
-import com.sparta.newspeed.user.entity.User;
+import com.sparta.newspeed.domain.user.entity.User;
 import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;

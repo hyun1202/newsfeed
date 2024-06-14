@@ -1,13 +1,13 @@
 package com.sparta.newspeed.config;
 
-import com.sparta.newspeed.auth.service.AuthService;
+import com.sparta.newspeed.domain.auth.service.AuthService;
 import com.sparta.newspeed.security.oauth2.CustomOAuth2UserService;
 import com.sparta.newspeed.security.oauth2.OAuth2SuccessHandler;
 import com.sparta.newspeed.security.AccessDeniedHandler;
 import com.sparta.newspeed.security.AuthenticationEntryPoint;
 import com.sparta.newspeed.security.filter.JwtAuthorizationFilter;
 import com.sparta.newspeed.security.service.UserDetailsServiceImpl;
-import com.sparta.newspeed.security.util.JwtUtil;
+import com.sparta.newspeed.common.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;

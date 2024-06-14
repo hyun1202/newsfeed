@@ -1,14 +1,10 @@
 package com.sparta.newspeed.awss3.service;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.sparta.newspeed.awss3.S3Service;
+import com.sparta.newspeed.common.aws3.S3Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.net.URL;
 
 @SpringBootTest(properties = "spring.profiles.active:test")
 public class S3ServiceTest {

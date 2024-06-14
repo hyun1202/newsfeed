@@ -1,7 +1,7 @@
 package com.sparta.newspeed.security.filter;
 
 import com.sparta.newspeed.security.service.UserDetailsServiceImpl;
-import com.sparta.newspeed.security.util.JwtUtil;
+import com.sparta.newspeed.common.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

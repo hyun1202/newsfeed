@@ -1,8 +1,8 @@
 package com.sparta.newspeed.security.service;
 
-import com.sparta.newspeed.user.entity.User;
-import com.sparta.newspeed.user.entity.UserRoleEnum;
-import com.sparta.newspeed.user.repository.UserRepository;
+import com.sparta.newspeed.domain.user.entity.User;
+import com.sparta.newspeed.domain.user.entity.UserRoleEnum;
+import com.sparta.newspeed.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
