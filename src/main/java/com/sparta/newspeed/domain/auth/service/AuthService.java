@@ -38,7 +38,7 @@ public class AuthService {
     private int authNumber;
 
 
-    public SignupResponseDto signup(SignUpRequestDto request, MultipartFile file) {
+    public SignupResponseDto signup(SignUpRequestDto request) {
         String userId = request.getUserId();
         String userName = request.getUserName();
         String password = passwordEncoder.encode(request.getPassword());
@@ -59,8 +59,8 @@ public class AuthService {
         // 사용자 ROLE 확인
         UserRoleEnum role = UserRoleEnum.UNCHECKED; // 아직 이메일 체크 안함.
         String fileName = null;
-        if (file != null) {
-            fileName = s3Service.uploadFile(file);
+        if (request.getFile() != null) {
+            fileName = s3Service.uploadFile(request.getFile());
         }
 
         // 사용자 등록

@@ -37,10 +37,9 @@ public class AuthController {
     }
 
     @Operation(summary = "회원가입",description = "회원가입")
-    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SignupResponseDto Signup(@RequestPart @Valid SignUpRequestDto requestDto,
-                                    @RequestPart(required = false)MultipartFile file){
-        return authService.signup(requestDto, file);
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public SignupResponseDto Signup(@ModelAttribute @Valid SignUpRequestDto requestDto){
+        return authService.signup(requestDto);
     }
 
     @Operation(summary = "mailCheck",description = "이메일 인증 api 입니다.")

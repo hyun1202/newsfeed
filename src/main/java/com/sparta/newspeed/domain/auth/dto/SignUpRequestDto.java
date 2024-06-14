@@ -4,8 +4,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
+@AllArgsConstructor
 @Getter
 public class SignUpRequestDto {
 
@@ -23,6 +26,5 @@ public class SignUpRequestDto {
     @Email
     private String email;
 
-    private boolean admin = false;
-    private String adminToken = "";
+    MultipartFile file;
 }
