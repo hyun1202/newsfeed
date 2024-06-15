@@ -10,9 +10,13 @@ import com.sparta.newspeed.domain.likes.entity.Like;
 import com.sparta.newspeed.domain.newsfeed.entity.Newsfeed;
 import com.sparta.newspeed.domain.newsfeed.entity.Ott;
 import com.sparta.newspeed.domain.user.entity.User;
+import com.sparta.newspeed.domain.user.entity.UserRoleEnum;
 import net.jqwik.api.Arbitraries;
+import net.jqwik.web.api.EmailArbitrary;
+import net.jqwik.web.api.Web;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class FixtureMonkeyUtil {
 
@@ -35,6 +39,26 @@ public class FixtureMonkeyUtil {
                     .giveMeBuilder(User.class)
                     .set("userSeq", Arbitraries.longs().between(1L, 50L))
                     .sample();
+        }
+
+        public static List<User> toUsers(int count) {
+            return FixtureMonkeyUtil.monkey()
+                    .giveMeBuilder(User.class)
+                    .set("userSeq", Arbitraries.longs().between(1L, 50L))
+                    .set("userId", Arbitraries.strings()
+                            .alpha()
+                            .numeric()
+                            .ofMinLength(5)
+                    )
+                    .set("userPassword", Arbitraries.strings()
+                            .alpha()
+                            .numeric()
+                            .withChars('!', '@', '#', '$', '~')
+                            .ofMinLength(10)
+                    )
+                    .set("userEmail", "test1@test.com")
+                    .set("role", UserRoleEnum.USER)
+                    .sampleList(count);
         }
 
         public static Newsfeed toNewsfeed() {
