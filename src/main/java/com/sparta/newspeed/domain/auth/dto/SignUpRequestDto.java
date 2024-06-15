@@ -20,10 +20,10 @@ public class SignUpRequestDto {
             message = "비밀번호는 대소문자 포함 영문 + 숫자 + 특수문자를 최소 1글자씩 포함해야 합니다.")
     private String password;
 
-    @NotBlank
+    @NotBlank(message = "닉네임은 null이 들어올 수 없습니다.")
     private String userName;
 
-    @Email
+    @Email(message = "이메일 형식이 아닙니다.")
     private String email;
 
     MultipartFile file;
