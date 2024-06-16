@@ -1,6 +1,7 @@
 package com.sparta.newspeed;
 
 import com.sparta.fixturemonkey.FixtureMonkeyUtil;
+import com.sparta.newspeed.domain.comment.entity.Comment;
 import com.sparta.newspeed.domain.newsfeed.entity.Newsfeed;
 import com.sparta.newspeed.domain.newsfeed.entity.Ott;
 import com.sparta.newspeed.domain.newsfeed.repository.OttRepository;
@@ -32,18 +33,33 @@ public class NewsfeedApplicationTests {
     @Autowired
     private OttRepository ottRepository;
 
+    private List<User> users;
+
     protected List<User> userDataInit() {
         List<User> users = FixtureMonkeyUtil.Entity.toUsers(5);
-        return userRepository.saveAll(users);
+        this.users = userRepository.saveAll(users);
+        return this.users;
     }
 
     protected List<Newsfeed> getNewsfeedDataInit() {
-        List<Ott> otts = ottRepository.findAll();
-        return FixtureMonkeyUtil.Entity.toNewsfeeds(5, userDataInit(), otts);
+        return getNewsfeedDataInit(5);
     }
 
     protected List<Newsfeed> getNewsfeedDataInit(int count) {
         List<Ott> otts = ottRepository.findAll();
-        return FixtureMonkeyUtil.Entity.toNewsfeeds(count, userDataInit(), otts);
+        userDataInit();
+        return FixtureMonkeyUtil.Entity.toNewsfeeds(count, this.users, otts);
+    }
+
+    protected List<Comment> getCommentDataInit(int count, List<Newsfeed> newsfeeds) {
+        return FixtureMonkeyUtil.Entity.toComments(count, this.users, newsfeeds);
+    }
+
+    public User getUser() {
+        return users.get(0);
+    }
+
+    public User getUser(int i) {
+        return users.get(i);
     }
 }

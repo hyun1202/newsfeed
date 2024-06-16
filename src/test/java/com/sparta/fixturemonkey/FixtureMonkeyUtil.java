@@ -104,8 +104,13 @@ public class FixtureMonkeyUtil {
                     .sampleList(count);
         }
 
+        public static List<Comment> toComments(int count, List<User> users, List<Newsfeed> newsfeeds) {
+            return getCommentArbitraryBuilder(Arbitraries.longs().between(1L, 1000L).sample(), Arbitraries.of(users), Arbitraries.of(newsfeeds))
+                    .sampleList(count);
+        }
+
         public static Comment toComment(Long commentSeq, Long newsFeedSeq, User user) {
-            return getCommentArbitraryBuilder(commentSeq, newsFeedSeq, user)
+            return getCommentArbitraryBuilder(commentSeq, user, toNewsfeed(newsFeedSeq))
                     .sample();
         }
 
@@ -136,17 +141,17 @@ public class FixtureMonkeyUtil {
         }
 
         private static ArbitraryBuilder<Comment> getCommentArbitraryBuilder(Long newsFeedSeq, User user) {
-            return getCommentArbitraryBuilder(Arbitraries.longs().between(1L, 50L).sample(), newsFeedSeq, user);
+            return getCommentArbitraryBuilder(Arbitraries.longs().between(1L, 50L).sample(), user, toNewsfeed(newsFeedSeq));
         }
 
-        private static ArbitraryBuilder<Comment> getCommentArbitraryBuilder(Long commentSeq, Long newsFeedSeq, User user) {
+        private static ArbitraryBuilder<Comment> getCommentArbitraryBuilder(Long commentSeq, Object user, Object newsfeeds) {
             return FixtureMonkeyUtil.monkey()
                     .giveMeBuilder(Comment.class)
                     .set("commentSeq", commentSeq)
                     .set("content", getRandomStringArbitrary(5, 100))
                     .set("like", Arbitraries.longs().between(1L, 500L))
                     .set("user", user)
-                    .set("newsfeed", toNewsfeed(newsFeedSeq));
+                    .set("newsfeed", newsfeeds);
         }
 
         private static ArbitraryBuilder<Comment> getCommentArbitraryBuilder(Long commentSeq, Long newsFeedSeq, User user, String content) {
