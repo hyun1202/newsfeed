@@ -1,6 +1,9 @@
 package com.sparta.newspeed;
 
 import com.sparta.fixturemonkey.FixtureMonkeyUtil;
+import com.sparta.newspeed.domain.newsfeed.entity.Newsfeed;
+import com.sparta.newspeed.domain.newsfeed.entity.Ott;
+import com.sparta.newspeed.domain.newsfeed.repository.OttRepository;
 import com.sparta.newspeed.domain.user.entity.User;
 import com.sparta.newspeed.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.MethodOrderer;
@@ -24,10 +27,23 @@ import java.util.List;
 @SpringBootTest
 public class NewsfeedApplicationTests {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
-    public void userDataInit() {
+    @Autowired
+    private OttRepository ottRepository;
+
+    protected List<User> userDataInit() {
         List<User> users = FixtureMonkeyUtil.Entity.toUsers(5);
-        userRepository.saveAll(users);
+        return userRepository.saveAll(users);
+    }
+
+    protected List<Newsfeed> getNewsfeedDataInit() {
+        List<Ott> otts = ottRepository.findAll();
+        return FixtureMonkeyUtil.Entity.toNewsfeeds(5, userDataInit(), otts);
+    }
+
+    protected List<Newsfeed> getNewsfeedDataInit(int count) {
+        List<Ott> otts = ottRepository.findAll();
+        return FixtureMonkeyUtil.Entity.toNewsfeeds(count, userDataInit(), otts);
     }
 }

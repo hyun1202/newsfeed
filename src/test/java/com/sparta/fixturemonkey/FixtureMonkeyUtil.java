@@ -13,10 +13,14 @@ import com.sparta.newspeed.domain.newsfeed.entity.Ott;
 import com.sparta.newspeed.domain.user.entity.User;
 import com.sparta.newspeed.domain.user.entity.UserRoleEnum;
 import net.jqwik.api.Arbitraries;
+import net.jqwik.api.Arbitrary;
+import net.jqwik.api.Combinators;
 import net.jqwik.api.arbitraries.StringArbitrary;
 import net.jqwik.web.api.EmailArbitrary;
 import net.jqwik.web.api.Web;
 
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -67,12 +71,19 @@ public class FixtureMonkeyUtil {
         }
 
         public static Newsfeed toNewsfeed(Long newsFeedSeq) {
-            return getNewsfeedArbitraryBuilder(newsFeedSeq)
+            return getNewsfeedArbitraryBuilder(newsFeedSeq,
+                    toUser(),
+                    new Ott(Arbitraries.of("Netflix", "Disney+", "watcha", "wavve", "tiving").sample(), 17000, 4))
                     .sample();
         }
 
         public static List<Newsfeed> toNewsfeeds(int count) {
             return getNewsfeedArbitraryBuilder()
+                    .sampleList(count);
+        }
+
+        public static List<Newsfeed> toNewsfeeds(int count, List<User> users, List<Ott> otts) {
+            return getNewsfeedArbitraryBuilder(Arbitraries.longs().between(1L, 50L).sample(), Arbitraries.of(users), Arbitraries.of(otts))
                     .sampleList(count);
         }
 
@@ -106,19 +117,22 @@ public class FixtureMonkeyUtil {
         }
 
         private static ArbitraryBuilder<Newsfeed> getNewsfeedArbitraryBuilder() {
-            return getNewsfeedArbitraryBuilder(Arbitraries.longs().between(1L, 50L).sample());
+            return getNewsfeedArbitraryBuilder(Arbitraries.longs().between(1L, 50L).sample(),
+                    toUser(),
+                    new Ott(Arbitraries.of("Netflix", "Disney+", "watcha", "wavve", "tiving").sample(), 17000, 4));
         }
 
-        private static ArbitraryBuilder<Newsfeed> getNewsfeedArbitraryBuilder(Long newsFeedSeq) {
+        private static ArbitraryBuilder<Newsfeed> getNewsfeedArbitraryBuilder(Long newsFeedSeq, Object user, Object otts) {
             return FixtureMonkeyUtil.monkey()
                     .giveMeBuilder(Newsfeed.class)
                     .set("newsFeedSeq", newsFeedSeq)
                     .set("title", getRandomStringArbitrary(5, 20))
                     .set("content", getRandomStringArbitrary(5, 100))
                     .set("userName", getRandomStringArbitrary(5, 20))
-                    .set("ott", new Ott("Netflix", 17000, 4))
-                    .set("user", toUser())
-                    .set("remainMember", Arbitraries.integers().between(1, 4));
+                    .set("ott", otts)
+                    .set("user", user)
+                    .set("remainMember", Arbitraries.integers().between(1, 4))
+                    .set("like", Arbitraries.longs().between(1L, 500L));
         }
 
         private static ArbitraryBuilder<Comment> getCommentArbitraryBuilder(Long newsFeedSeq, User user) {
@@ -156,5 +170,15 @@ public class FixtureMonkeyUtil {
                 .numeric()
                 .ofMinLength(min)
                 .ofMaxLength(max);
+    }
+
+    public static Arbitrary<LocalDate> datesBetween(int startYear, int endYear) {
+        Arbitrary<Integer> years = Arbitraries.integers().between(startYear, endYear);
+        Arbitrary<Integer> months = Arbitraries.integers().between(1, 12);
+        Arbitrary<Integer> days = Arbitraries.integers().between(1, 31);
+
+        return Combinators.combine(years, months, days)
+                .as(LocalDate::of)
+                .ignoreException(DateTimeException.class);
     }
 }
