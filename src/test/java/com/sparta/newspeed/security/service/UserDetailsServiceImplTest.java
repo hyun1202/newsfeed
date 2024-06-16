@@ -8,6 +8,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -19,11 +21,12 @@ import static org.mockito.BDDMockito.given;
 
 
 class UserDetailsServiceImplTest extends NewsfeedApplicationTests {
-    @Autowired
-    UserRepository userRepository;
 
-    @Mock
-    UserRepository mockUserRepository;
+    @Autowired
+    UserDetailsServiceImpl userDetailsService;
+
+    @SpyBean
+    UserRepository userRepository;
 
     @DisplayName("UserDetailsService 통합 테스트")
     @Test
@@ -33,8 +36,6 @@ class UserDetailsServiceImplTest extends NewsfeedApplicationTests {
 
         // given
         String userId = findUser.get(0).getUserId();
-
-        UserDetailsServiceImpl userDetailsService = new UserDetailsServiceImpl(userRepository);
 
         // when
         UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
@@ -55,10 +56,8 @@ class UserDetailsServiceImplTest extends NewsfeedApplicationTests {
                 .role(UserRoleEnum.USER)
                 .build();
 
-        UserDetailsServiceImpl userDetailsService = new UserDetailsServiceImpl(mockUserRepository);
-
         // return 값 지정
-        given(mockUserRepository.findByUserId(userId)).willReturn(Optional.of(user));
+        given(userRepository.findByUserId(userId)).willReturn(Optional.of(user));
 
         // when
         UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
@@ -79,10 +78,8 @@ class UserDetailsServiceImplTest extends NewsfeedApplicationTests {
                 .role(UserRoleEnum.WITHDRAW)
                 .build();
 
-        UserDetailsServiceImpl userDetailsService = new UserDetailsServiceImpl(mockUserRepository);
-
         // return 값 지정
-        given(mockUserRepository.findByUserId(userId)).willReturn(Optional.of(user));
+        given(userRepository.findByUserId(userId)).willReturn(Optional.of(user));
 
         // when - then
         assertThrows(UsernameNotFoundException.class,
@@ -95,8 +92,6 @@ class UserDetailsServiceImplTest extends NewsfeedApplicationTests {
         userDataInit();
         // given
         String userId = "test2";
-
-        UserDetailsServiceImpl userDetailsService = new UserDetailsServiceImpl(userRepository);
 
         // when - then
         assertThrows(UsernameNotFoundException.class,
