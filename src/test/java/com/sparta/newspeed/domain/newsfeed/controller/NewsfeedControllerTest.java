@@ -6,12 +6,14 @@ import com.sparta.mock.MockSpringSecurityFilter;
 import com.sparta.mock.MockUtil;
 import com.sparta.newspeed.config.WebSecurityConfig;
 import com.sparta.newspeed.domain.newsfeed.dto.NewsfeedRequestDto;
+import com.sparta.newspeed.domain.newsfeed.dto.NewsfeedResponseDto;
+import com.sparta.newspeed.domain.newsfeed.entity.Newsfeed;
+import com.sparta.newspeed.domain.newsfeed.entity.Ott;
 import com.sparta.newspeed.domain.newsfeed.repository.NewsfeedRespository;
 import com.sparta.newspeed.domain.newsfeed.repository.OttRepository;
 import com.sparta.newspeed.domain.newsfeed.service.NewsfeedService;
+import com.sparta.newspeed.domain.user.entity.User;
 import net.jqwik.api.Arbitraries;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,9 +27,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -46,6 +55,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class NewsfeedControllerTest {
     private MockMvc mockMvc;
     private Principal principal;
+
+    private User user;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -68,6 +79,7 @@ class NewsfeedControllerTest {
                 .apply(springSecurity(new MockSpringSecurityFilter()))
                 .build();
         principal = MockUtil.makePrincipal();
+        user = MockUtil.getPrincipalUserDetails(principal).getUser();
     }
 
     @Order(1)
@@ -75,13 +87,33 @@ class NewsfeedControllerTest {
     @Test
     void test1() throws Exception {
         // given
+        String title = FixtureMonkeyUtil.getRandomStringArbitrary(5, 20).sample();
+        String content = FixtureMonkeyUtil.getRandomStringArbitrary(5, 20).sample();
+        String ottName = FixtureMonkeyUtil.getRandomStringArbitrary(5, 5).sample();
+        int remainMember = Arbitraries.integers().between(1, 4).sample();
+
         NewsfeedRequestDto requestDto = FixtureMonkeyUtil.monkey()
                 .giveMeBuilder(NewsfeedRequestDto.class)
-                .set("title", Arbitraries.strings().ofMinLength(1))
-                .set("content", Arbitraries.strings().ofMinLength(1))
-                .set("ottName", Arbitraries.strings().ofMinLength(1))
-                .set("remainMember", Arbitraries.integers().between(1, 4))
+                .set("title", title)
+                .set("content", content)
+                .set("ottName", ottName)
+                .set("remainMember", remainMember)
                 .sample();
+
+        Long newsFeedSeq = Arbitraries.longs().between(1L, 50L).sample();
+
+        NewsfeedResponseDto responseDto = new NewsfeedResponseDto(
+                Newsfeed.builder()
+                        .newsFeedSeq(newsFeedSeq)
+                        .title(title)
+                        .content(content)
+                        .ott(new Ott(ottName, 1, 4))
+                        .user(user)
+                        .remainMember(remainMember)
+                        .build()
+        );
+
+        given(newsfeedService.createNewsFeed(any(), any())).willReturn(responseDto);
 
         String requestJson = objectMapper.writeValueAsString(requestDto);
 
@@ -89,8 +121,15 @@ class NewsfeedControllerTest {
         mockMvc.perform(post("/api/newsfeeds")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
-                .principal(principal)
-        ).andExpect(status().is2xxSuccessful());
+                .principal(principal))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(print())
+                .andExpect(jsonPath("$.newsFeedSeq").value(newsFeedSeq))
+                .andExpect(jsonPath("$.title").value(title))
+                .andExpect(jsonPath("$.content").value(content))
+                .andExpect(jsonPath("$.ottName").value(ottName))
+                .andExpect(jsonPath("$.remainMember").value(remainMember))
+        ;
     }
 
     @Order(2)
@@ -100,8 +139,15 @@ class NewsfeedControllerTest {
         // given
         int page = 1;
         String sortBy = "createAt";
-        LocalDate startDate = new LocalDateTime().toLocalDate();
-        LocalDate endDate = new LocalDateTime().toLocalDate().plusDays(1);
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDateTime.now().toLocalDate().plusDays(1);
+
+        List<Newsfeed> newsfeeds = FixtureMonkeyUtil.Entity.toNewsfeeds(5);
+
+        List<NewsfeedResponseDto> listNewsfeedDto = newsfeeds.stream().map(NewsfeedResponseDto::new).toList();
+
+        given(newsfeedService.getNewsfeeds(page, sortBy, startDate, endDate))
+                .willReturn(listNewsfeedDto);
 
         // when - then
         mockMvc.perform(get("/api/newsfeeds")
@@ -109,7 +155,20 @@ class NewsfeedControllerTest {
                         .param("sortBy", sortBy)
                         .param("startDate", startDate.toString())
                         .param("endDate", endDate.toString())
-                ).andExpect(status().is2xxSuccessful());
+                ).andExpect(status().is2xxSuccessful())
+                .andDo(print())
+                .andExpect(jsonPath("$..['newsFeedSeq']").exists())
+                .andExpect(jsonPath("$..['title']").exists())
+                .andExpect(jsonPath("$..['content']").exists())
+                .andExpect(jsonPath("$..['remainMember']").exists())
+                .andExpect(jsonPath("$..['userName']").exists())
+                .andExpect(jsonPath("$..['ottName']").exists())
+                .andExpect(jsonPath("$[0].title").value(listNewsfeedDto.get(0).getTitle()))
+                .andExpect(jsonPath("$[1].content").value(listNewsfeedDto.get(1).getContent()))
+                .andExpect(jsonPath("$[2].remainMember").value(listNewsfeedDto.get(2).getRemainMember()))
+                .andExpect(jsonPath("$[2].userName").value(listNewsfeedDto.get(2).getUserName()))
+                .andExpect(jsonPath("$[2].ottName").value(listNewsfeedDto.get(2).getOttName()))
+                ;
     }
 
     @Order(3)
@@ -118,14 +177,33 @@ class NewsfeedControllerTest {
     void test3() throws Exception {
         // given
         Long newsfeedSeq = 1L;
+        String title = FixtureMonkeyUtil.getRandomStringArbitrary(5, 20).sample();
+        String content = FixtureMonkeyUtil.getRandomStringArbitrary(5, 20).sample();
+        String ottName = FixtureMonkeyUtil.getRandomStringArbitrary(5, 5).sample();
+        int remainMember = Arbitraries.integers().between(1, 4).sample();
 
         NewsfeedRequestDto requestDto = FixtureMonkeyUtil.monkey()
                 .giveMeBuilder(NewsfeedRequestDto.class)
-                .set("title", Arbitraries.strings().ofMinLength(1))
-                .set("content", Arbitraries.strings().ofMinLength(1))
-                .set("ottName", Arbitraries.strings().ofMinLength(1))
-                .set("remainMember", Arbitraries.integers().between(1, 4))
+                .set("title", title)
+                .set("content", content)
+                .set("ottName", ottName)
+                .set("remainMember", remainMember)
                 .sample();
+
+        NewsfeedResponseDto responseDto = new NewsfeedResponseDto(
+                Newsfeed.builder()
+                        .newsFeedSeq(newsfeedSeq)
+                        .title(title)
+                        .content(content)
+                        .ott(new Ott(ottName, 1, 4))
+                        .user(user)
+                        .remainMember(remainMember)
+                        .build()
+        );
+
+        // 컨트롤러에 @RequestBody가 있으면 any()를 사용해야함
+        // 내부 값은 같으나 실제로 컨트롤러가 실행이 될 때는 다른 객체로(주소값 상이) 판단됨
+        given(newsfeedService.updateNewsFeed(any(), any(), any())).willReturn(responseDto);
 
         String requestJson = objectMapper.writeValueAsString(requestDto);
 
@@ -133,8 +211,11 @@ class NewsfeedControllerTest {
         mockMvc.perform(put("/api/newsfeeds/" + newsfeedSeq)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
-                .principal(principal)
-        ).andExpect(status().is2xxSuccessful());
+                .principal(principal))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(print())
+                .andExpect(jsonPath("$.title").value(requestDto.getTitle()))
+        ;
     }
 
     @Order(4)
@@ -144,9 +225,18 @@ class NewsfeedControllerTest {
         // given
         Long newsfeedSeq = 1L;
 
+        NewsfeedResponseDto responseDto = new NewsfeedResponseDto(FixtureMonkeyUtil.Entity.toNewsfeed(newsfeedSeq));
+
+        given(newsfeedService.getNewsfeed(any())).willReturn(responseDto);
+
         // when - then
-        mockMvc.perform(get("/api/newsfeeds/" + newsfeedSeq)
-        ).andExpect(status().is2xxSuccessful());
+        mockMvc.perform(get("/api/newsfeeds/" + newsfeedSeq))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(print())
+                .andExpect(jsonPath("$.newsFeedSeq").value(newsfeedSeq))
+                .andExpect(jsonPath("$.title").value(responseDto.getTitle()))
+                .andExpect(jsonPath("$.content").value(responseDto.getContent()))
+        ;
     }
 
     @Order(5)
@@ -162,3 +252,4 @@ class NewsfeedControllerTest {
         ).andExpect(status().is2xxSuccessful());
     }
 }
+

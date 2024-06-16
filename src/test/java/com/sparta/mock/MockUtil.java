@@ -3,8 +3,6 @@ package com.sparta.mock;
 import com.sparta.newspeed.domain.user.entity.User;
 import com.sparta.newspeed.domain.user.entity.UserRoleEnum;
 import com.sparta.newspeed.security.service.UserDetailsImpl;
-import net.jqwik.api.Arbitraries;
-import net.jqwik.api.arbitraries.StringArbitrary;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,22 +12,7 @@ import java.security.Principal;
 public class MockUtil {
 
     public static Principal makePrincipal() {
-        // Mock 테스트 유져 생성
-        Long userSeq = 1L;
-        String username = "test1";
-        String password = "1234";
-        String email = "test1@test.com";
-        UserRoleEnum role = UserRoleEnum.USER;
-        // 가짜 유저 객체
-        User testUser = User.builder()
-                .userSeq(userSeq)
-                .userId(username)
-                .userPassword(password)
-                .userEmail(email)
-                .role(role)
-                .build();
-
-        return makePrincipal(testUser);
+        return makePrincipal(makePrincipalUser());
     }
 
     public static Principal makePrincipal(User testUser) {
@@ -50,5 +33,25 @@ public class MockUtil {
                 mediaType,
                 "file".getBytes()
         );
+    }
+
+    private static User makePrincipalUser() {
+        Long userSeq = 1L;
+        String username = "test1";
+        String password = "1234";
+        String email = "test1@test.com";
+        UserRoleEnum role = UserRoleEnum.USER;
+
+        return User.builder()
+                .userSeq(userSeq)
+                .userId(username)
+                .userPassword(password)
+                .userEmail(email)
+                .role(role)
+                .build();
+    }
+
+    public static UserDetailsImpl getPrincipalUserDetails(Principal principal) {
+        return (UserDetailsImpl) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
     }
 }
